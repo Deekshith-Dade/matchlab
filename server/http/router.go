@@ -8,6 +8,7 @@ import (
 	"github.com/deekshith-dade/matchlab/internal/actions"
 	"github.com/deekshith-dade/matchlab/internal/impressions"
 	"github.com/deekshith-dade/matchlab/internal/matches"
+	"github.com/deekshith-dade/matchlab/internal/recommendations"
 	"github.com/deekshith-dade/matchlab/internal/users"
 	chi "github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -28,6 +29,7 @@ func NewRouter(db *sql.DB) *chi.Mux {
 		api.Mount("/impressions", impressions.Routes(db))
 		api.Mount("/actions", actions.Routes(db))
 		api.Mount("/matches", matches.Routes(db))
+		api.Mount("/recommendations", recommendations.Routes(db))
 	})
 
 	return r

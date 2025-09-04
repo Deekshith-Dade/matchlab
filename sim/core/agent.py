@@ -14,8 +14,12 @@ def like_probability(rank: int) -> float:
 
 
 class UserAgent:
-    def __init__(self, user_id: str, repo: Repository, *, jitter_ms=(50, 250)):
+    def __init__(self, user_id: str, data: tuple[int, int, int],
+                 repo: Repository, *, jitter_ms=(50, 250)):
         self.user_id = user_id
+        self.user_x = data[0]
+        self.user_y = data[1]
+        self.distance = data[2]
         self.repo = repo
         self.jitter_ms = jitter_ms
         self.rand = random.Random(hash(user_id) & 0xffffffff)
@@ -23,7 +27,7 @@ class UserAgent:
 
     async def run(self):
         while True:
-            await self.repo.heartbeat(self.user_id, now())
+            await self.repo.heartbeat(self.user_id, now(), active=True)
 
             recs = await self.repo.recommended_for(self.user_id, 5)
             for viewed_id, rank in recs:
@@ -46,4 +50,5 @@ class UserAgent:
                         print(f"Users {match.u1} LOVEEES {match.u2}")
                         return
             ms = self.rand.uniform(*self.jitter_ms)/10.0
+            await self.repo.heartbeat(self.user_id, now(), active=False)
             await asyncio.sleep(ms)
