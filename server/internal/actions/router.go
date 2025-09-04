@@ -9,7 +9,7 @@ import (
 )
 
 func Routes(db *sql.DB) http.Handler {
-	r := ch.NewRouter()
+	r := chi.NewRouter()
 	repo := NewRepository(db)
 
 	r.Get("/", func(w http.ResponseWriter, req *http.Request) {
@@ -25,11 +25,12 @@ func Routes(db *sql.DB) http.Handler {
 			http.Error(w, err.Error(), 400)
 			return
 		}
-		if err := repo.Create(req.Context(), act); err != nil {
+		match, err := repo.Create(req.Context(), act)
+		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
 		}
-		w.WriteHeader(http.StatusCreated)
+		_ = json.NewEncoder(w).Encode(match)
 	})
 
 
