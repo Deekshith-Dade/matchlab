@@ -3,11 +3,11 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from '@react-three/drei';
 import Box from "@/components/box";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 type User = {
-  user_id: string;
+  id: string;
   x: number;
   y: number;
   active: boolean;
@@ -26,10 +26,48 @@ const createUsers = (n: number): User[] => {
   return users;
 }
 
+const getUsers = async () : Promise<User[]> => {
+  try{
+  const res = await fetch("http://localhost:8080/users");
+    if(!res.ok){
+      const err = await res.json()
+      throw new Error(`HTTP error! Status: ${res.status}, Message: ${err}`)
+    }
+  const data = await res.json()
+  return data;
+  }
+  catch(error){
+    console.log(error);
+    return [];
+  }
+  }
+
 
 export default function Home() {
 
-  const [users, setUsers] = useState<User[]>(createUsers(100));
+  const [users, setUsers] = useState<User[]>([]);
+  
+  useEffect(() => {
+    let mounted = true;
+
+    getUsers().then((data) => {
+      if(mounted) setUsers(data)
+    });
+
+    const interval = setInterval(() => {
+        getUsers().then((data: User[]) => {
+          if(mounted) setUsers(data);
+        }
+        )
+    }, 500);
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    }
+  }, []);
+
+  // console.log(users)
 
   return (
     <div className="font-sans">
@@ -40,8 +78,8 @@ export default function Home() {
             <ambientLight intensity={Math.PI / 2} />
             <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI} />
             <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
-            {users.map((user: User) => (
-              <Box key={user.user_id} active={user.active} position={[user.x, user.y, 0]}/>
+            {users && users.map((user: User) => (
+              <Box key={user.id} active={user.active} position={[user.x, user.y, -30]}/>
             ))}
           </Canvas>
         </div>

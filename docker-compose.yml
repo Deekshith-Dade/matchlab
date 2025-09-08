@@ -27,6 +27,12 @@ services:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       retries: 5
+##  sim:
+##    image: sim
+##    build:
+##      context: .
+##      dockerfile: ./sim/Dockerfile
+    
 
 volumes:
   app-db:

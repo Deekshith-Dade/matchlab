@@ -22,6 +22,15 @@ type Config struct {
 	DBname 		string 	`json:"dbname"`
 }
 
+func ClearAllTables(db *sql.DB) error {
+	const q = `
+		TRUNCATE users, actions, impressions, matches
+		RESTART IDENTITY CASCADE;
+		`
+	_, err := db.Exec(q)
+	return err
+}
+
 func InitDB() {
 	configFile, err := os.Open("./db/dbConfig.json")
 	if err != nil {

@@ -1,8 +1,8 @@
 import asyncio
 from datetime import datetime
 from typing import Optional, Sequence
-from core.contracts import Impression, Action, Match
-from core.repo import Repository
+from sim.core.contracts import Impression, Action, Match
+from sim.core.repo import Repository
 
 
 class InMemoryRepo(Repository):
@@ -18,10 +18,11 @@ class InMemoryRepo(Repository):
         self.matches: list[Match] = []
         self.match_q: asyncio.Queue[Match] = asyncio.Queue()
 
-    async def heartbeat(self, user_id: str, at: datetime):
+    async def heartbeat(self, user_id: str, at: datetime, active: bool):
         async with self._lock:
             self.last_seen[user_id] = at
-            self.active.add(user_id)
+            if active:
+                self.active.add(user_id)
 
     async def add_impression(self, impression: Impression):
         async with self._lock:

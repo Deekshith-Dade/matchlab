@@ -24,6 +24,11 @@ func main() {
 
 	 db.InitDB()
 	 defer db.Connection.Close()
+	
+	if err := db.ClearAllTables(db.Connection); err != nil {
+		log.Fatalf("failed to clear tables: %v", err)
+	}
+	fmt.Println("Cleared Tables to Start Simulation Fresh")
 
 	port := os.Getenv("SERVER_PORT")
 	fmt.Println("PORT:",port)

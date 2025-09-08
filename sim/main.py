@@ -5,19 +5,19 @@ from infra.db_repo import DbRepo
 from core.agent import UserAgent
 
 
-def seed_positions(n=500, w=1000, h=1000, seed=7):
+def seed_positions(n=500, w=250, h=250, seed=7):
     r = random.Random(seed)
     return {f"u{i:04d}":
-            (r.randint(20, w-20),  # x
-            r.randint(20, h-20),  # y
-            r.randint(3, 7))  # distance
+            (r.randint(int(-w/2), int(w/2)),  # x
+            r.randint(int(-h/2), int(h/2)),  # y
+            r.randint(3, 12))  # distance
             for i in range(n)}
 
 
 async def main():
     users_data = seed_positions(n=400)
     # repo = InMemoryRepo(users_xy)
-    url = "http://localhost:8000"
+    url = "http://localhost:8080"
     repo = DbRepo(url)
 
     tasks = []
@@ -27,7 +27,7 @@ async def main():
         await repo.create_user(uid, data[0], data[1], data[2])
         t = asyncio.create_task(agent.run())
         tasks.append(t)
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(5.0)
 
 #    async def monitor():
 #        while True:

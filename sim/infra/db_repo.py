@@ -1,9 +1,9 @@
-from dataclasses import asdict
+import asyncio
 from core.contracts import Impression, Action, Match
 from typing import Optional, Sequence
 from core.repo import Repository
 import httpx
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class DbRepo(Repository):
@@ -19,11 +19,11 @@ class DbRepo(Repository):
                     "id": user_id,
                     "x": x,
                     "y": y,
-                    "distance": dist
+                    "distance": dist,
+                    "active": False
                 }
-                r = await client.post(f"{self.addr}/users", data=data)
+                r = await client.post(f"{self.addr}/users", json=data)
                 r.raise_for_status()
-                print(r.json())
             except Exception as e:
                 print(f"Exception | Create User | {e}")
 
@@ -32,22 +32,26 @@ class DbRepo(Repository):
             try:
                 body = {
                     "active": active,
-                    "at": at
+                    "at": at.isoformat()
                 }
-                r = await client.patch(f"{self.addr}/user/{user_id}/active",
+                r = await client.patch(f"{self.addr}/users/{user_id}/active",
                                        json=body)
                 r.raise_for_status()
-                print(r.json())
             except Exception as e:
                 print(f"Exception | Heartbeat | {e}")
 
     async def add_impression(self, impression: Impression):
         async with httpx.AsyncClient() as client:
             try:
+                data = {
+                    "viewer_id": impression.viewer_id,
+                    "viewed_id": impression.viewed_id,
+                    "rank": impression.rank
+                }
                 r = await client.post(f"{self.addr}/impressions",
-                                      data=impression)
+                                      json=data)
                 r.raise_for_status()
-                print(r.json())
+                print("Imperssion created", r.status_code)
             except Exception as e:
                 print(f"Exception | Add Impression | {e}")
 
@@ -55,8 +59,14 @@ class DbRepo(Repository):
         mat = None
         async with httpx.AsyncClient() as client:
             try:
+                data = {
+                    "viewer_id": action.viewer_id,
+                    "viewed_id": action.viewed_id,
+                    "kind": action.kind,
+                    "at": action.at.isoformat()
+                }
                 r = await client.post(f"{self.addr}/actions",
-                                      data=asdict(action))
+                                      json=data)
                 r.raise_for_status()
                 mat = r.json()
             except Exception as e:
@@ -83,14 +93,28 @@ class DbRepo(Repository):
                     f"{self.addr}/recommendations/{user_id}?topk={top_k}")
                 r.raise_for_status()
                 data = r.json()
-                out = [(entry['user_id'], entry['rank']) for entry in data]
+                if data:
+                    out = [(entry['user_id'], entry['rank']) for entry in data]
             except Exception as e:
                 print(f"Exception | Recommendation | {e}")
         return out
 
 
 async def main():
-    url = "http://localhost:8000"
+    url = "http://localhost:8080"
     repo = DbRepo(url)
     out = await repo.recommended_for("user3", 2)
     print(out)
+
+    action = Action(
+        viewer_id="user1",
+        viewed_id="user4",
+        kind="like",
+        at=datetime.now(timezone.utc)
+    )
+    data = await repo.add_action(action)
+    print(f"Add action respnse data {data}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

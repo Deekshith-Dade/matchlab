@@ -39,15 +39,20 @@ class UserAgent:
                 if self.rand.random() < like_probability(rank):
                     match = await self.repo.add_action(Action(
                         viewer_id=self.user_id, viewed_id=viewed_id,
-                        kind="LIKE", at=now()
+                        kind="like", at=now()
                     ))
                     print(f"User: {self.user_id} LIKED {viewed_id}")
                     if match:
-                        # User with some probability doesn't like his match and goes back to dating
+                        # User with some probability doesn't like his match and
+                        # goes back to dating
                         if self.rand.random() < 0.75:
-                            print(f"User {self.user_id} Doesn't like his match")
+                            print(
+                                f"MATCH | User {self.user_id} Doesn't like his match")
+                            await self.repo.heartbeat(self.user_id, now(), active=True)
                             continue
-                        print(f"Users {match.u1} LOVEEES {match.u2}")
+                        print(f"MATCH | Users {match.u1} LOVEEES {match.u2}")
+                        await self.repo.heartbeat(self.user_id,
+                                                  now(), active=False)
                         return
             ms = self.rand.uniform(*self.jitter_ms)/10.0
             await self.repo.heartbeat(self.user_id, now(), active=False)

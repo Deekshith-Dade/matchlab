@@ -3,6 +3,7 @@ package impressions
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -26,6 +27,7 @@ func Routes(db *sql.DB) http.Handler {
 	r.Post("/", func(w http.ResponseWriter, req *http.Request) {
 		var imp Impression
 		if err := json.NewDecoder(req.Body).Decode(&imp) ; err != nil {
+			fmt.Println("Error, Body", req.Body)
 			http.Error(w, err.Error(), 400)
 			return
 		}

@@ -66,6 +66,8 @@ export default function Box({active, ...props}: boxProps) {
     if (meshRef.current) meshRef.current.rotation.x += delta;
   });
 
+  if(!active) return;
+
   return (
     <group>
     <mesh

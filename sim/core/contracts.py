@@ -3,7 +3,7 @@ from typing import Literal
 from datetime import datetime
 
 
-Kind = Literal["LIKE", "SKIP", "SUPERLIKE"]
+Kind = Literal["like", "pass", "superlike"]
 
 
 @dataclass
